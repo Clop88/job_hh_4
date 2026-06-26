@@ -20,7 +20,7 @@ export const NotFoundPage = () => {
         >
           На главную
         </button>
-        <img src="./img/cat.gif" alt="notfound" className={styles.img} />
+        <img src="./src/img/cat.gif" alt="notfound" className={styles.img} />
       </div>
     </div>
   );
