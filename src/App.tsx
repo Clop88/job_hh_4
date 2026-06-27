@@ -18,7 +18,9 @@ function App() {
             <Route path="/" element={<Navigate to="/vacancies/moscow" replace />} />
             <Route path="/vacancies/:city" element={<VacanciesPage />} />
             <Route path="/vacancies/:city/:id" element={<VacancyDetailPage />} />
-            <Route path="*" element={<NotFoundPage />} /> 
+            <Route path="*" element={<NotFoundPage />} />
+            <Route path="/404" element={<NotFoundPage />} />
+            <Route path="*" element={<Navigate to="/404" replace />} /> 
           </Routes>
         </HashRouter>
       </MantineProvider>

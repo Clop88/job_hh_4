@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { Container } from '@mantine/core';
@@ -26,13 +26,12 @@ import { Pagination } from '../components/Pagination';
 import styles from './VacanciesPage.module.css';
 
 export const VacanciesPage = () => {
+  
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { city } = useParams<{ city: string }>();
-  
-  const [isInitialized, setIsInitialized] = useState(false);
-  const urlSkillsRef = useRef<string | null>(null);
-  
+  const isInitialized = useRef(false);
+  const defaultSkillsSet = localStorage.getItem('defaultSkillsSet') === 'true';
   const vacancies = useAppSelector(selectVacancies);
   const loading = useAppSelector(selectLoading);
   const totalPages = useAppSelector(selectTotalPages);
@@ -40,7 +39,17 @@ export const VacanciesPage = () => {
   const searchText = useAppSelector(selectSearchText);
   const selectedCity = useAppSelector(selectSelectedCity);
   const skills = useAppSelector(selectSkills);
-  const isFirstLoad = useRef(true);
+  
+  
+
+  const getCitySlug = (cityName: string): string => {
+    const cityMap: Record<string, string> = {
+      'Москва': 'moscow',
+      'Санкт-Петербург': 'petersburg',
+    };
+    return cityMap[cityName] || 'moscow';
+  };
+
 
   useEffect(() => {
     const cityMap: Record<string, string> = {
@@ -50,85 +59,108 @@ export const VacanciesPage = () => {
       
     if (city && cityMap[city]) {
       dispatch(setSelectedCity(cityMap[city]));
-    } else if (city) {
-      navigate('/vacancies/moscow', { replace: true });
-    }
+    } 
   }, [city, dispatch, navigate]);
 
 
   useEffect(() => {
-  const hash = window.location.hash;
-  const queryString = hash.includes('?') ? hash.split('?')[1] : '';
-  
-  const params: Record<string, string> = {};
-  queryString.split('&').forEach((pair) => {
-    const [key, value] = pair.split('=');
-    if (key) {
-      params[key] = decodeURIComponent(value || '');
-    }
-  });
-  
-  const urlSearch = params['search'] || null;
-  const urlSkills = params['skills'] || null;
-  const urlPage = params['page'] || null;
-
-  if (urlSearch !== null) dispatch(setSearchText(urlSearch));
-  
-  if (urlSkills !== null) {
-    const skillsArray = urlSkills === '' ? [] : urlSkills.split(',');
-    urlSkillsRef.current = urlSkills;
-    dispatch(setSkills(skillsArray));
-  }
+    const hash = window.location.hash;
+    const queryString = hash.includes('?') ? hash.split('?')[1] : '';
     
-  if (urlPage !== null) {
-    const pageNumber = parseInt(urlPage, 10);
-    if (!isNaN(pageNumber) && pageNumber > 0) {
-      dispatch(setCurrentPage(pageNumber));
+    const params: Record<string, string> = {};
+    queryString.split('&').forEach((pair) => {
+      const [key, value] = pair.split('=');
+      if (key) {
+        params[key] = decodeURIComponent(value || '');
+      }
+    });
+    
+    const urlSearch = params['search'] || null;
+    const urlSkills = params['skills'] || null;
+    const urlPage = params['page'] || null;
+
+    console.log('🔵 [READ] urlSkills:', urlSkills);
+    console.log('🔵 [READ] defaultSkillsSet:', defaultSkillsSet);
+    console.log('🔵 [READ] текущие skills в Redux:', skills);
+
+    const pathParts = window.location.hash.replace('#', '').split('/');
+    const urlCity = pathParts[1] || 'moscow';
+
+    const cityName = urlCity === 'moscow' ? 'Москва' : 
+                     urlCity === 'petersburg' ? 'Санкт-Петербург' : 'Москва';
+    dispatch(setSelectedCity(cityName));
+
+    if (urlSearch !== null) dispatch(setSearchText(urlSearch));
+    
+    if (urlSkills !== null) {
+      const skillsArray = urlSkills === '' ? [] : urlSkills.split(',');
+      console.log('🔵 [READ] Устанавливаем навыки из URL:', skillsArray);
+      dispatch(setSkills(skillsArray));
+      if (!defaultSkillsSet) {
+        localStorage.setItem('defaultSkillsSet', 'true');
+      }
+    } else {
+      console.log('🔵 [READ] URL skills нет');
+      if (!defaultSkillsSet && skills.length === 0) {
+        const defaultSkills = ['JavaScript', 'React', 'Redux', 'ReduxToolkit', 'Nextjs'];
+        console.log('🔵 [READ] Устанавливаем дефолтные навыки (первый заход):', defaultSkills);
+        dispatch(setSkills(defaultSkills));
+        localStorage.setItem('defaultSkillsSet', 'true');
+      } else {
+        console.log('🔵 [READ] Дефолтные уже установлены, навыки не трогаем');
+      }
     }
-  }
-  
-  // eslint-disable-next-line react-hooks/set-state-in-effect
-  setIsInitialized(true);
-}, []);
+      
+    if (urlPage !== null) {
+      const pageNumber = parseInt(urlPage, 10);
+      if (!isNaN(pageNumber) && pageNumber > 0) {
+        dispatch(setCurrentPage(pageNumber));
+      }
+    }
+    
+    isInitialized.current = true;
+  }, [defaultSkillsSet]);
 
   
   useEffect(() => {
-    if (!isInitialized) return;
-    
-    if (isFirstLoad.current && skills.length === 0) {
-    const defaultSkills = ['JavaScript', 'React', 'Redux', 'ReduxToolkit', 'Nextjs'];
-    dispatch(setSkills(defaultSkills));
-    isFirstLoad.current = false;
-    return;
+    if (!isInitialized.current) return;
+
+    const validCities = ['moscow', 'petersburg'];
+    if (city && !validCities.includes(city)) {
+      navigate('/404', { replace: true });
+      return;
     }
-    
 
-    isFirstLoad.current = false;
+    dispatch(fetchVacancies());
 
-    const params = new URLSearchParams();
-    if (searchText) params.set('search', searchText);
-    params.set('skills', skills.join(','));
-    if (currentPage > 1) params.set('page', currentPage.toString());
+    const newParams = new URLSearchParams();
+    if (searchText) newParams.set('search', searchText);
+    newParams.set('skills', skills.join(','));
+    if (currentPage > 1) newParams.set('page', currentPage.toString());
     
-    const newUrl = `/vacancies/${city || 'moscow'}?${params.toString()}`;
+    // ✅ Если параметров нет, добавляем skills=
+    const queryString = newParams.toString();
+    const finalQuery = queryString || 'skills=';
+    
+    const citySlug = selectedCity ? getCitySlug(selectedCity) : 'moscow';
+    const newUrl = `/vacancies/${citySlug}?${finalQuery}`;
     const currentHash = window.location.hash.replace('#', '');
     
     if (currentHash === newUrl) return;
     
     navigate(newUrl, { replace: true });
-  }, [searchText, skills, currentPage, navigate, isInitialized, city]);
+  }, [searchText, skills, currentPage, dispatch, navigate, selectedCity, city]);
 
   
-  useEffect(() => {
-    if (!isInitialized) return;
-    
-    dispatch(fetchVacancies());
-  }, [dispatch, currentPage, searchText, selectedCity, skills, isInitialized]);
-
   const handleCityChange = (value: string | null) => {
-    dispatch(setSelectedCity(value));
+     if (value) {
+    const cityMap: Record<string, string> = {
+      'moscow': 'Москва',
+      'petersburg': 'Санкт-Петербург',
     };
-  
+    dispatch(setSelectedCity(cityMap[value]));
+    }
+  };  
 
   const handleSearchChange = (value: string) => {
     dispatch(setSearchText(value));
@@ -159,10 +191,11 @@ export const VacanciesPage = () => {
 
         <div className={styles.main}>
           <div className={styles.leftsection}>
+            
             <div className={styles.moduleskills}>
               <SkillsFilter skills={skills} onSkillsChange={handleSkillsChange} />
             </div>
-            
+          
           </div>
 
           <div className={styles.rightsection}>

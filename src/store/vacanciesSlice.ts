@@ -24,7 +24,7 @@ const initialState: VacanciesState = {
   currentPage: 1,
   searchText: '',
   selectedCity: null,
-  skills: ['JavaScript', 'React', 'Redux', 'ReduxToolkit', 'Nextjs'],
+  skills: [],
   selectedVacancy: null,
   loadingDetail: false,
   detailError: null,
