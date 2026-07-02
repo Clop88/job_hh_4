@@ -54,7 +54,7 @@ export const VacancyCard = ({ vacancy }: VacancyCardProps) => {
             Смотреть вакансию
           </Link>
           <button
-            onClick={() => window.open(`https://clop88.github.io/job_hh_3/#/vacancies/${vacancy.id}`, '_blank')}
+            onClick={() => window.open(`https://clop88.github.io/job_hh_4/#/vacancies/${vacancy.id}`, '_blank')}
           >
           </button>
         </div>

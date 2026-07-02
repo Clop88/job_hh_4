@@ -6,7 +6,6 @@
 .container {
   max-width: 1050px;
   margin: 0 auto;
-  padding: 24px 24px;
   
 }
 
@@ -22,7 +21,6 @@
   display: flex;
   flex-direction: column;
   height: 70px;
-  
 }
 
 .title {
@@ -58,10 +56,8 @@
   flex-direction: column;
   width: 322px;
   gap: 10px;
-  width: 322px;
   min-width: 322px;
   flex-shrink: 0;
-  margin-top: 52px;
   
 }
 
@@ -81,51 +77,29 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  
   width: 100%;
   height: 84px;
   background-color: white;
   border-radius: 12px;
-  padding-bottom: 24px;
-  padding-top: 24px;
+  padding: 24px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   border: 1px solid #e9ecef;
   transition: all 0.2s ease;
 }
-
-.title {
-  font-size: 26px;
-  font-weight: 700;
-  color: #1a1a1a;
-  margin-top: px;
-}
-
-.subtitle {
-  font-size: 20px;
-  color: #666;
-  margin-top: px;
-}
-
-.divider {
-  width: 100%;
-  border: 1px solid #e9e9e9;
-  position: relative;
-  top: 110px;
-}
-
-.filtersRow {
-  display: flex;
-  gap: 16px;
-  flex-direction: column-reverse
-}
-
-
 
 .loaderWrapper {
   display: flex;
   justify-content: center;
   padding: 60px;
 }
+
+.divider {
+  width: 100%;
+  border: 1px solid #e9e9e9;
+  position: relative;
+  top: 90px;
+}
+
 
 .loader {
   width: 40px;
@@ -154,7 +128,6 @@
 .vacanciesList {
   display: flex;
   flex-wrap: wrap;
-
   justify-content: center;
   gap: 16px;
 }
@@ -165,26 +138,7 @@
   width: 659px;
 }
 
-.warningBanner {
-  background-color: #fff3cd;
-  border: 1px solid #ffeeba;
-  border-radius: 12px;
-  padding: 12px 20px;
-  margin-top: 24px;
-  color: #856404;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-}
-
-.warningIcon {
-  font-size: 18px;
-}
-
 .pagination {
   padding-top: 24px;
   padding-bottom: 40px;
-
 }

@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import cardStyles from '../components/VacancyCard.module.css';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { Header } from '../components/Header';
 import { 
   fetchVacancyById, 
   selectSelectedVacancy, 
@@ -97,8 +96,9 @@ export const VacancyDetailPage = () => {
 
  return (
   <>
-      <Header />
+      
     <div className={styles.container}>
+        
       <button onClick={() => navigate(-1)} className={styles.backBtn}>
         ← Назад к вакансиям
       </button>

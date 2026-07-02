@@ -41,7 +41,6 @@
   font-size: 18px;
   font-weight: 600;
   color: #1a1a1a;
-  
 }
 
 .centerMenu {
@@ -49,7 +48,6 @@
   flex-direction: row-reverse;
   width: 47%;
   white-space: nowrap;
-
 }
 
 .menuItem {
@@ -62,8 +60,17 @@
   text-decoration: none;
   transition: color 0.2s ease;
   cursor: pointer;
-  
 }
+
+.menuItem.active {
+  color: #1890ff;
+  font-weight: 600; 
+}
+
+.menuItem:hover {
+  color: #1890ff;
+}
+
 
 .rightMenu {
   width: 50%;
@@ -72,7 +79,6 @@
   gap: 8px;
   cursor: pointer;
   flex-shrink: 0;
-
 }
 
 .userLink {
@@ -81,17 +87,22 @@
   gap: 8px;
   text-decoration: none;
   transition: opacity 0.2s ease;
+  padding: 8px 12px;
+  border-radius: 8px;
 }
 
-.userLink:hover {
-  opacity: 0.8;
+.userLink.active .aboutText {
+  color: #1890ff;
+}
+
+.userLink.active .userIcon {
+  color: #1890ff;
 }
 
 .userIcon {
   display: flex;
   color: #868e96;
   transition: color 0.2s;
-  
 }
 
 .userIcon:hover {

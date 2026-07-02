@@ -16,17 +16,14 @@ import {
   selectSelectedCity,
   selectSkills,
 } from '../store/vacanciesSlice';
-import { Header } from '../components/Header';
 import { SearchBar } from '../components/SearchBar';
-import { CityTabs } from '../components/CityTabs';
-
+import { CitySelect } from '../components/CitySelect';
 import { SkillsFilter } from '../components/SkillsFilter';
 import { VacancyCard } from '../components/VacancyCard';
 import { Pagination } from '../components/Pagination';
 import styles from './VacanciesPage.module.css';
 
 export const VacanciesPage = () => {
-  
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { city } = useParams<{ city: string }>();
@@ -39,29 +36,34 @@ export const VacanciesPage = () => {
   const searchText = useAppSelector(selectSearchText);
   const selectedCity = useAppSelector(selectSelectedCity);
   const skills = useAppSelector(selectSkills);
-  
-  
 
-  const getCitySlug = (cityName: string): string => {
+  const getCitySlug = (cityName: string | null): string => {
+    if (!cityName) return 'all';
     const cityMap: Record<string, string> = {
       'Москва': 'moscow',
       'Санкт-Петербург': 'petersburg',
+      'Барнаул': 'barnaul',
     };
-    return cityMap[cityName] || 'moscow';
+    return cityMap[cityName] || 'all';
+  };
+
+  const getCityName = (slug: string): string | null => {
+    const cityMap: Record<string, string> = {
+      'moscow': 'Москва',
+      'petersburg': 'Санкт-Петербург',
+      'barnaul': 'Барнаул',
+    };
+    return cityMap[slug] || null;
   };
 
 
   useEffect(() => {
-    const cityMap: Record<string, string> = {
-      'moscow': 'Москва',
-      'petersburg': 'Санкт-Петербург',
-    };
-      
-    if (city && cityMap[city]) {
-      dispatch(setSelectedCity(cityMap[city]));
-    } 
-  }, [city, dispatch, navigate]);
-
+    if (city) {
+    const cityName = getCityName(city);
+      dispatch(setSelectedCity(cityName));
+    }
+  }, [city, dispatch]);
+   
 
   useEffect(() => {
     const hash = window.location.hash;
@@ -79,35 +81,25 @@ export const VacanciesPage = () => {
     const urlSkills = params['skills'] || null;
     const urlPage = params['page'] || null;
 
-    console.log('🔵 [READ] urlSkills:', urlSkills);
-    console.log('🔵 [READ] defaultSkillsSet:', defaultSkillsSet);
-    console.log('🔵 [READ] текущие skills в Redux:', skills);
-
     const pathParts = window.location.hash.replace('#', '').split('/');
-    const urlCity = pathParts[1] || 'moscow';
+    const urlCity = pathParts[1] || 'all';
 
-    const cityName = urlCity === 'moscow' ? 'Москва' : 
-                     urlCity === 'petersburg' ? 'Санкт-Петербург' : 'Москва';
+    const cityName = getCityName(urlCity);
     dispatch(setSelectedCity(cityName));
 
     if (urlSearch !== null) dispatch(setSearchText(urlSearch));
     
     if (urlSkills !== null) {
       const skillsArray = urlSkills === '' ? [] : urlSkills.split(',');
-      console.log('🔵 [READ] Устанавливаем навыки из URL:', skillsArray);
       dispatch(setSkills(skillsArray));
       if (!defaultSkillsSet) {
         localStorage.setItem('defaultSkillsSet', 'true');
       }
     } else {
-      console.log('🔵 [READ] URL skills нет');
       if (!defaultSkillsSet && skills.length === 0) {
         const defaultSkills = ['JavaScript', 'React', 'Redux', 'ReduxToolkit', 'Nextjs'];
-        console.log('🔵 [READ] Устанавливаем дефолтные навыки (первый заход):', defaultSkills);
         dispatch(setSkills(defaultSkills));
         localStorage.setItem('defaultSkillsSet', 'true');
-      } else {
-        console.log('🔵 [READ] Дефолтные уже установлены, навыки не трогаем');
       }
     }
       
@@ -121,11 +113,10 @@ export const VacanciesPage = () => {
     isInitialized.current = true;
   }, [defaultSkillsSet]);
 
-  
   useEffect(() => {
     if (!isInitialized.current) return;
 
-    const validCities = ['moscow', 'petersburg'];
+    const validCities = ['all', 'moscow', 'petersburg', 'barnaul'];
     if (city && !validCities.includes(city)) {
       navigate('/404', { replace: true });
       return;
@@ -138,11 +129,10 @@ export const VacanciesPage = () => {
     newParams.set('skills', skills.join(','));
     if (currentPage > 1) newParams.set('page', currentPage.toString());
     
-    // ✅ Если параметров нет, добавляем skills=
     const queryString = newParams.toString();
     const finalQuery = queryString || 'skills=';
     
-    const citySlug = selectedCity ? getCitySlug(selectedCity) : 'moscow';
+    const citySlug = selectedCity ? getCitySlug(selectedCity) : 'all';
     const newUrl = `/vacancies/${citySlug}?${finalQuery}`;
     const currentHash = window.location.hash.replace('#', '');
     
@@ -151,14 +141,16 @@ export const VacanciesPage = () => {
     navigate(newUrl, { replace: true });
   }, [searchText, skills, currentPage, dispatch, navigate, selectedCity, city]);
 
-  
   const handleCityChange = (value: string | null) => {
-     if (value) {
-    const cityMap: Record<string, string> = {
-      'moscow': 'Москва',
-      'petersburg': 'Санкт-Петербург',
-    };
-    dispatch(setSelectedCity(cityMap[value]));
+    if (value === null) {
+      dispatch(setSelectedCity(null));
+     } else {
+      const cityMap: Record<string, string> = {
+        '1': 'Москва',
+        '2': 'Санкт-Петербург',
+        '3': 'Барнаул',
+      };
+      dispatch(setSelectedCity(cityMap[value]));
     }
   };  
 
@@ -176,8 +168,7 @@ export const VacanciesPage = () => {
 
   return (
     <div className={styles.app}>
-      <Header />
-      <div className={styles.divider}></div>
+     <div className={styles.divider}></div>
       <Container className={styles.container}>
         <div className={styles.content}>
           <div className={styles.contentTitle}>
@@ -191,17 +182,17 @@ export const VacanciesPage = () => {
 
         <div className={styles.main}>
           <div className={styles.leftsection}>
-            
+           
             <div className={styles.moduleskills}>
               <SkillsFilter skills={skills} onSkillsChange={handleSkillsChange} />
             </div>
-          
+            <div className={styles.modulecity}>
+              <CitySelect value={city || 'moscow'} onChange={handleCityChange} />
+            </div>
+
           </div>
 
           <div className={styles.rightsection}>
-            
-              <CityTabs value={city || 'moscow'} onChange={handleCityChange} />
-            
             {loading ? (
               <div className={styles.loaderWrapper}>
                 <div className={styles.loader} />
